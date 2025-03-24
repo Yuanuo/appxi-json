@@ -10,7 +10,7 @@ JSON in Java [package org.json]
 [![Java CI with Maven](https://github.com/stleary/JSON-java/actions/workflows/pipeline.yml/badge.svg)](https://github.com/stleary/JSON-java/actions/workflows/pipeline.yml)
 [![CodeQL](https://github.com/stleary/JSON-java/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/stleary/JSON-java/actions/workflows/codeql-analysis.yml)
 
-**[Click here if you just want the latest release jar file.](https://search.maven.org/remotecontent?filepath=org/json/json/20240303/json-20240303.jar)**
+**[Click here if you just want the latest release jar file.](https://search.maven.org/remotecontent?filepath=org/json/json/20250107/json-20250107.jar)**
 
 
 # Overview
@@ -95,6 +95,18 @@ Execute the test suite with Gradlew:
 
 ```shell
 gradlew clean build test
+```
+
+*Optional* Execute the test suite in strict mode with Gradlew:
+
+```shell
+gradlew testWithStrictMode
+```
+
+*Optional* Execute the test suite in strict mode with Maven:
+
+```shell
+mvn test -P test-strict-mode 
 ```
 
 # Notes

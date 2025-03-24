@@ -206,7 +206,7 @@ public class JSONObject {
      *             duplicated key.
      */
     public JSONObject(JSONTokener x) throws JSONException {
-        this(x, new JSONParserConfiguration());
+        this(x, x.getJsonParserConfiguration());
     }
 
     /**
@@ -225,6 +225,8 @@ public class JSONObject {
         char c;
         String key;
 
+        boolean isInitial = x.getPrevious() == 0;
+
         if (x.nextClean() != '{') {
             throw x.syntaxError("A JSONObject text must begin with '{'");
         }
@@ -234,6 +236,9 @@ public class JSONObject {
             case 0:
                 throw x.syntaxError("A JSONObject text must end with '}'");
             case '}':
+                if (isInitial && jsonParserConfiguration.isStrictMode() && x.nextClean() != 0) {
+                    throw x.syntaxError("Strict mode error: Unparsed characters found at end of input text");
+                }
                 return;
             default:
                 key = x.nextSimpleValue(c).toString();
@@ -266,8 +271,16 @@ public class JSONObject {
 
             switch (x.nextClean()) {
             case ';':
+                // In strict mode semicolon is not a valid separator
+                if (jsonParserConfiguration.isStrictMode()) {
+                    throw x.syntaxError("Strict mode error: Invalid character ';' found");
+                }
             case ',':
                 if (x.nextClean() == '}') {
+                    // trailing commas are not allowed in strict mode
+                    if (jsonParserConfiguration.isStrictMode()) {
+                        throw x.syntaxError("Strict mode error: Expected another object element");
+                    }
                     return;
                 }
                 if (x.end()) {
@@ -276,6 +289,9 @@ public class JSONObject {
                 x.back();
                 break;
             case '}':
+                if (isInitial && jsonParserConfiguration.isStrictMode() && x.nextClean() != 0) {
+                    throw x.syntaxError("Strict mode error: Unparsed characters found at end of input text");
+                }
                 return;
             default:
                 throw x.syntaxError("Expected a ',' or '}'");
@@ -327,7 +343,7 @@ public class JSONObject {
         	        throw new NullPointerException("Null key.");
         	    }
                 final Object value = e.getValue();
-                if (value != null) {
+                if (value != null || jsonParserConfiguration.isUseNativeNulls()) {
                     testValidity(value);
                     this.map.put(String.valueOf(e.getKey()), wrap(value, recursionDepth + 1, jsonParserConfiguration));
                 }
@@ -461,7 +477,7 @@ public class JSONObject {
      *                duplicated key.
      */
     public JSONObject(String source, JSONParserConfiguration jsonParserConfiguration) throws JSONException {
-        this(new JSONTokener(source), jsonParserConfiguration);
+        this(new JSONTokener(source, jsonParserConfiguration), jsonParserConfiguration);
     }
 
     /**
@@ -1258,7 +1274,7 @@ public class JSONObject {
     static BigDecimal objectToBigDecimal(Object val, BigDecimal defaultValue) {
         return objectToBigDecimal(val, defaultValue, true);
     }
-    
+
     /**
      * @param val value to convert
      * @param defaultValue default value to return is the conversion doesn't work or is null.
